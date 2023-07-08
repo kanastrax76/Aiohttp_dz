@@ -1,0 +1,54 @@
+version: "3.9"
+
+volumes:
+  pgdata:
+
+services:
+  postgresql_aiohttp:
+    image: postgres:15.1-alpine
+    container_name: aiohttp_db
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${PG_USER}"
+      POSTGRES_PASSWORD: "${PG_PASSWORD}"
+      POSTGRES_DB: "${PG_DB}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}" ]
+      interval: 10s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./logs:/var/aiohttp_log
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+
+
+#  advertisements:
+#    build: ./advs
+#    command: gunicorn adv.wsgi:adv -b 0.0.0.0:5000
+#    container_name: advertisements
+#    ports:
+#      - "5000:5000"
+#    depends_on:
+#      - postgresql
+#    env_file:
+#      - ./.env
+
+#  web:
+#    build: ./nginx
+#    container_name: nginx
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - postgresql
+#      - advertisements
+#    environment:
+#      - NGINX_HOST=127.0.0.1
+#      - NGINX_PORT=80
